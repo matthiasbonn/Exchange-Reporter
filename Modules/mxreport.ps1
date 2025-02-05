@@ -12,7 +12,20 @@ $DomainsToTest = @(
 	)
 
 #------------------------------------------------------------------------------
-$DNSServer = "8.8.8.8"
+# Aktiven Netzwerkadapter ermitteln
+$adapter = Get-NetAdapter | Where-Object { $_.Status -eq 'Up' } | Select-Object -First 1
+
+# DNS-Server des aktiven Adapters abrufen (IPv4)
+$dnsAddresses = (Get-DnsClientServerAddress -InterfaceIndex $adapter.ifIndex -AddressFamily IPv4).ServerAddresses
+
+# Prüfen, ob ein DNS-Server vorhanden ist und den ersten als String speichern
+if ($dnsAddresses.Count -gt 0) {
+    $dnsServerIpString = $dnsAddresses[0].ToString()
+    $DNSServer = $dnsServerIpString
+} else {
+    $DNSServer = "8.8.8.8"
+}
+
 
 $mxreport = Generate-ReportHeader "mxreport.png" "$l_mx_header"
 
